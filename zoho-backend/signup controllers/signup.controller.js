@@ -54,18 +54,30 @@ export let updateUserDetails = async (req, res)=>{
     try {
         let {userId, age, dob, mobile, gender} = req.body;
         let isExist = await User.findById(userId);
+        // console.log(isExist)
         if(!isExist){
             return res.status(404).json({msg:"user does not exist", resp:false});
         }
-        let updateDetails = new Details({
-            age,
-            gender,
-            mobile,
-            userId,
-            dob
-        })
-        await updateDetails.save();
-        return res.status(201).json({msg:"success", resp:true});
+        let updateDetails = await Details.updateOne(
+            { userId: userId },
+            { $set: { age, dob, mobile, gender } }
+        );
+
+        return res.status(200).json({ msg: "Success", resp: true });
+    } catch (error) {
+        console.log("Error", error);
+        return res.status(500).json({msg:"Server error", resp:false});
+    }
+}
+
+export let getDetails = async (req, res)=>{
+    try {
+        let {userId} = req.params;
+        let data = await Details.findOne({userId:userId});
+        if(!data){
+            return res.status(400).json({msg:"user data not available", resp:false});
+        }
+        return res.status(200).json({msg:data, resp:true});
     } catch (error) {
         console.log("Error", error);
         return res.status(500).json({msg:"Server error", resp:false});
